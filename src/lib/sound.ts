@@ -42,6 +42,16 @@ export function playWin() {
   ;[523.25, 659.25, 783.99, 1046.5].forEach((f, i) => beep(f, 0.22, 0.12, 'triangle', i * 0.09))
 }
 
+/** Kutu açılırken. */
+export function playReveal() {
+  ;[660, 880].forEach((f, i) => beep(f, 0.12, 0.1, 'triangle', i * 0.07))
+}
+
+/** "Kandırıldınız": alçalan, komik bir melodi. */
+export function playFooled() {
+  ;[392, 370, 349, 311].forEach((f, i) => beep(f, i === 3 ? 0.45 : 0.2, 0.1, 'triangle', i * 0.2))
+}
+
 /** Cevap süresi dolduğunda. */
 export function playTimeUp() {
   beep(440, 0.25, 0.15, 'sawtooth')

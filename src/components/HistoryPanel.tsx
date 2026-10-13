@@ -9,10 +9,12 @@ interface HistoryPanelProps {
 const timeFmt = new Intl.DateTimeFormat('tr-TR', { hour: '2-digit', minute: '2-digit' })
 const dateFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long' })
 
+const ICONS: Record<HistoryEntry['mode'], string> = { questions: '❓', people: '🎤', twoTruths: '🤥' }
+
 export function historyAsText(history: HistoryEntry[]): string {
   return [...history]
     .reverse()
-    .map((h) => `${timeFmt.format(h.at)}  ${h.mode === 'people' ? '🎤' : '❓'} ${h.label}`)
+    .map((h) => `${timeFmt.format(h.at)}  ${ICONS[h.mode] ?? '•'} ${h.person ? `${h.person}: ` : ''}${h.label}`)
     .join('\n')
 }
 
@@ -74,10 +76,10 @@ export function HistoryPanel({ history, onClear }: HistoryPanelProps) {
               {header && <div className="history-day">{header}</div>}
               <div className="history-item">
                 <span className="history-time">{timeFmt.format(h.at)}</span>
-                <span className="history-icon">{h.mode === 'people' ? '🎤' : '❓'}</span>
+                <span className="history-icon">{ICONS[h.mode] ?? '•'}</span>
                 <span className="history-label">
                   {h.label}
-                  {h.deckName && <small>{h.deckName}</small>}
+                  {(h.person || h.deckName) && <small>{[h.person, h.deckName].filter(Boolean).join(' · ')}</small>}
                 </span>
               </div>
             </li>

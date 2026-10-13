@@ -18,6 +18,8 @@ export interface Participant {
 
 export type WheelMode = 'questions' | 'people'
 
+export type GameId = 'wheel' | 'boxes' | 'twoTruths'
+
 export interface Settings {
   /** Çarkın dönme süresi (saniye) */
   spinSeconds: number
@@ -30,12 +32,17 @@ export interface Settings {
 
 export interface HistoryEntry {
   id: string
-  mode: WheelMode
+  /** Kaydın türü: soru, söz sırası ya da bir "İki Doğru Bir Yalan" turu */
+  mode: WheelMode | 'twoTruths'
   label: string
   /** Sorunun ait olduğu destenin adı (kişi çarkında boş) */
   deckName?: string
+  /** Soruyu cevaplayan / turu oynayan kişi */
+  person?: string
   at: number
 }
+
+export type NewHistoryEntry = Omit<HistoryEntry, 'id' | 'at'>
 
 /** Çarktaki tek bir dilim. `refId` soru ya da katılımcı kimliğidir. */
 export interface WheelItem {

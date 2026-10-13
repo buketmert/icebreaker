@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Deck, HistoryEntry, Participant, Settings, WheelItem, WheelMode } from './types'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { Deck, GameId, HistoryEntry, NewHistoryEntry, Participant, Settings, WheelItem, WheelMode } from './types'
 import { createDefaultDecks } from './data/defaultDecks'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { uid } from './lib/random'
-import { playWin, unlockAudio } from './lib/sound'
-import { Wheel, type WheelHandle } from './components/Wheel'
-import { ResultModal } from './components/ResultModal'
+import { isTypingTarget } from './lib/dom'
+import { GameMenu } from './components/GameMenu'
 import { DecksPanel } from './components/DecksPanel'
 import { ParticipantsPanel } from './components/ParticipantsPanel'
 import { HistoryPanel } from './components/HistoryPanel'
 import { SettingsPanel } from './components/SettingsPanel'
+import { WheelGame } from './games/WheelGame'
+import { BoxesGame } from './games/BoxesGame'
+import { TwoTruthsGame } from './games/TwoTruthsGame'
+import { GAME_BY_ID } from './games/catalog'
 
 type PanelId = 'decks' | 'people' | 'history' | 'settings'
 
@@ -44,11 +47,6 @@ function Logo() {
   )
 }
 
-function isTypingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false
-  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName)
-}
-
 export default function App() {
   const [decks, setDecks] = useLocalStorage<Deck[]>('decks', createDefaultDecks)
   const [participants, setParticipants] = useLocalStorage<Participant[]>('participants', () => [])
@@ -58,12 +56,8 @@ export default function App() {
   const [removedPeople, setRemovedPeople] = useLocalStorage<string[]>('removed-people', () => [])
   const [mode, setMode] = useLocalStorage<WheelMode>('mode', () => 'questions')
   const [panel, setPanel] = useLocalStorage<PanelId>('panel', () => 'decks')
-
-  const [result, setResult] = useState<{ item: WheelItem; mode: WheelMode; key: string } | null>(null)
-  const [spinning, setSpinning] = useState(false)
-  const [pendingSpin, setPendingSpin] = useState(false)
+  const [game, setGame] = useLocalStorage<GameId | null>('game', () => null)
   const [presenting, setPresenting] = useState(false)
-  const wheelRef = useRef<WheelHandle>(null)
 
   // Eski sürümden kalan ayarlarda eksik alan varsa varsayılanla tamamla.
   const settings = useMemo(() => ({ ...DEFAULT_SETTINGS, ...storedSettings }), [storedSettings])
@@ -89,41 +83,31 @@ export default function App() {
     return removedQuestions.filter((id) => ids.has(id)).length
   }, [decks, removedQuestions])
 
-  const items = mode === 'questions' ? questionItems : peopleItems
-
-  const spin = useCallback(() => {
-    if (result) return
-    unlockAudio()
-    wheelRef.current?.spin()
-  }, [result])
-
-  const handleResult = useCallback(
-    (item: WheelItem) => {
-      setSpinning(false)
-      if (settings.soundOn) playWin()
-      const entry: HistoryEntry = { id: uid(), mode, label: item.label, deckName: item.deckName, at: Date.now() }
-      setHistory((h) => [entry, ...h].slice(0, MAX_HISTORY))
-      setResult({ item, mode, key: entry.id })
+  const log = useCallback(
+    (entry: NewHistoryEntry) => {
+      const full: HistoryEntry = { ...entry, id: uid(), at: Date.now() }
+      setHistory((h) => [full, ...h].slice(0, MAX_HISTORY))
     },
-    [mode, settings.soundOn, setHistory],
+    [setHistory],
   )
 
-  const closeResult = (remove: boolean) => {
-    if (remove && result) {
-      const add = (list: string[]) => (list.includes(result.item.refId) ? list : [...list, result.item.refId])
-      if (result.mode === 'questions') setRemovedQuestions(add)
+  const removeFromWheel = useCallback(
+    (wheel: WheelMode, refId: string) => {
+      const add = (list: string[]) => (list.includes(refId) ? list : [...list, refId])
+      if (wheel === 'questions') setRemovedQuestions(add)
       else setRemovedPeople(add)
-    }
-    setResult(null)
-  }
+    },
+    [setRemovedQuestions, setRemovedPeople],
+  )
 
-  // "Tekrar çevir": sonuç kapanıp çark güncel listeyle yeniden çizildikten sonra çevir.
-  useEffect(() => {
-    if (pendingSpin && !result) {
-      setPendingSpin(false)
-      spin()
-    }
-  }, [pendingSpin, result, spin])
+  /** Bir oyun eksik veri istediğinde ilgili paneli açar (mobilde panele kaydırır). */
+  const openPanel = useCallback(
+    (id: PanelId) => {
+      setPanel(id)
+      requestAnimationFrame(() => document.querySelector('.side')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))
+    },
+    [setPanel],
+  )
 
   const togglePresenting = useCallback(() => {
     if (!presenting) {
@@ -145,17 +129,13 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (result || isTypingTarget(e.target) || e.ctrlKey || e.metaKey || e.altKey) return
-      if (e.code === 'Space') {
-        e.preventDefault()
-        spin()
-      } else if (e.key === 'f' || e.key === 'F') {
-        togglePresenting()
-      }
+      if (isTypingTarget(e.target) || e.ctrlKey || e.metaKey || e.altKey) return
+      if (document.querySelector('[role="dialog"]')) return
+      if (e.key === 'f' || e.key === 'F') togglePresenting()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [result, spin, togglePresenting])
+  }, [togglePresenting])
 
   const switchMode = (next: WheelMode) => {
     setMode(next)
@@ -164,73 +144,73 @@ export default function App() {
     if (next === 'questions' && panel === 'people') setPanel('decks')
   }
 
-  const emptyText =
-    mode === 'questions'
-      ? decks.some((d) => d.enabled && d.questions.length) && removedQuestionCount > 0
-        ? { title: 'Tüm sorular soruldu 🎉', hint: 'Sorular panelinden çıkanları geri getirebilirsiniz.' }
-        : { title: 'Çarkta soru yok', hint: 'Sorular panelinden bir deste seçin ya da soru ekleyin.' }
-      : participants.length > 0
-        ? { title: 'Herkes konuştu 🎉', hint: 'Katılımcılar panelinden herkesi geri getirebilirsiniz.' }
-        : { title: 'Çarkta kimse yok', hint: 'Katılımcılar panelinden isim ekleyin.' }
+  const selectGame = (next: GameId) => {
+    setGame(next)
+    if (next === 'twoTruths' && panel === 'decks') setPanel('people')
+  }
+
+  const currentGame = game ? GAME_BY_ID[game] : null
 
   return (
     <div className={`app ${presenting ? 'presenting' : ''}`}>
       <header className="topbar">
         <div className="brand">
-          <Logo />
+          <button type="button" className="brand-home" onClick={() => setGame(null)} aria-label="Oyun menüsü">
+            <Logo />
+          </button>
           <div>
             <h1>Buzkıran</h1>
-            <p>Toplantılar için buz kırıcı çark</p>
+            <p>Toplantılar için buz kırıcı oyunlar</p>
           </div>
         </div>
 
-        <div className="mode-tabs" role="tablist" aria-label="Çark türü">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'questions'}
-            className={mode === 'questions' ? 'active' : ''}
-            disabled={spinning}
-            onClick={() => switchMode('questions')}
-          >
-            ❓ Soru çarkı <span className="count">{questionItems.length}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'people'}
-            className={mode === 'people' ? 'active' : ''}
-            disabled={spinning}
-            onClick={() => switchMode('people')}
-          >
-            🎤 Kişi çarkı <span className="count">{peopleItems.length}</span>
-          </button>
-        </div>
+        {currentGame && (
+          <nav className="crumbs" aria-label="Konum">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setGame(null)}>
+              ← Oyunlar
+            </button>
+            <span className="crumb-title">
+              {currentGame.emoji} {currentGame.name}
+            </span>
+          </nav>
+        )}
 
+        <span className="topbar-spacer" />
         <button type="button" className="btn btn-ghost" onClick={togglePresenting}>
           {presenting ? 'Sunumdan çık' : 'Sunum modu'}
         </button>
       </header>
 
       <main className="layout">
-        <section className="stage" aria-label="Çark">
-          <Wheel
-            ref={wheelRef}
-            items={items}
-            spinSeconds={settings.spinSeconds}
-            soundOn={settings.soundOn}
-            emptyTitle={emptyText.title}
-            emptyHint={emptyText.hint}
-            onSpinStart={() => setSpinning(true)}
-            onResult={handleResult}
+        {game === null && (
+          <GameMenu questionCount={questionItems.length} participantCount={participants.length} onSelect={selectGame} />
+        )}
+        {game === 'wheel' && (
+          <WheelGame
+            mode={mode}
+            onModeChange={switchMode}
+            questionItems={questionItems}
+            peopleItems={peopleItems}
+            hasQuestions={decks.some((d) => d.enabled && d.questions.length > 0)}
+            removedQuestionCount={removedQuestionCount}
+            participantCount={participants.length}
+            settings={settings}
+            onLog={log}
+            onRemove={removeFromWheel}
           />
-          <button type="button" className="btn btn-spin" onClick={spin} disabled={spinning || items.length === 0}>
-            {spinning ? 'Dönüyor…' : 'Çarkı çevir'}
-          </button>
-          <p className="stage-hint">
-            <kbd>Boşluk</kbd> ile çevir · <kbd>F</kbd> ile sunum modu
-          </p>
-        </section>
+        )}
+        {game === 'boxes' && (
+          <BoxesGame
+            questionItems={questionItems}
+            participants={participants}
+            settings={settings}
+            onLog={log}
+            onOpenPanel={openPanel}
+          />
+        )}
+        {game === 'twoTruths' && (
+          <TwoTruthsGame participants={participants} settings={settings} onLog={log} onOpenPanel={openPanel} />
+        )}
 
         <aside className="side">
           <div className="side-tabs" role="tablist" aria-label="Paneller">
@@ -301,22 +281,6 @@ export default function App() {
           )}
         </aside>
       </main>
-
-      {result && (
-        <ResultModal
-          key={result.key}
-          item={result.item}
-          mode={result.mode}
-          answerSeconds={settings.answerSeconds}
-          soundOn={settings.soundOn}
-          removeAfterPick={settings.removeAfterPick}
-          onClose={closeResult}
-          onSpinAgain={(remove) => {
-            closeResult(remove)
-            setPendingSpin(true)
-          }}
-        />
-      )}
     </div>
   )
 }

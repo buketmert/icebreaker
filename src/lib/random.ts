@@ -13,6 +13,16 @@ export function randomInt(max: number): number {
   return Math.floor(random() * max)
 }
 
+/** Fisher–Yates karıştırma; girdiyi değiştirmez. */
+export function shuffle<T>(items: readonly T[]): T[] {
+  const a = [...items]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1)
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 export function uid(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID()

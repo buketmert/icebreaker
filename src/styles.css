@@ -113,7 +113,38 @@ kbd {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-right: auto;
+}
+
+.brand-home {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+  display: grid;
+  transition: rotate 0.4s;
+}
+
+.brand-home:hover {
+  rotate: 60deg;
+}
+
+.topbar-spacer {
+  flex: 1;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.crumb-title {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand h1 {
@@ -195,6 +226,7 @@ kbd {
   flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 400px;
+  align-content: start;
   gap: 24px;
   padding: 8px 24px 24px;
   max-width: 1360px;
@@ -903,6 +935,508 @@ kbd {
   }
 }
 
+.timer-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ---------- Oyun menüsü ---------- */
+
+.game-menu {
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 24px;
+  padding-top: 8px;
+}
+
+.menu-head h2 {
+  margin: 0 0 6px;
+  font-size: clamp(24px, 3vw, 32px);
+  letter-spacing: -0.02em;
+}
+
+.game-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 22px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    border-color 0.15s;
+}
+
+.game-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.game-emoji {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.game-name {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.game-desc {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.game-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chip strong {
+  color: var(--text);
+}
+
+.game-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #06a77d;
+}
+
+.game-status.warn {
+  color: var(--danger);
+}
+
+.game-cta {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ---------- Ortak oyun ekranı ---------- */
+
+.game-stage {
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.game-setup {
+  width: min(100%, 620px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.setup-hero {
+  text-align: center;
+}
+
+.setup-hero h2 {
+  margin: 6px 0 4px;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+.setup-hero p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.setup-emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.rules {
+  margin: 0;
+  padding: 14px 16px 14px 36px;
+  background: var(--surface-2);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.setup-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.game-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.game-bar-spacer {
+  flex: 1;
+}
+
+.turn-callout {
+  margin: 0;
+  font-size: clamp(18px, 2.4vw, 26px);
+  text-align: center;
+  min-height: 40px;
+}
+
+.turn-callout .btn {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* ---------- Gizemli Kutular ---------- */
+
+.box-grid {
+  width: min(100%, 760px);
+  display: grid;
+  gap: 14px;
+}
+
+.box {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 0;
+  border-radius: 18px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow:
+    inset 0 -8px 0 rgba(0, 0, 0, 0.18),
+    0 10px 20px rgba(31, 35, 64, 0.15);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.box::before {
+  /* Kurdele */
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 50%;
+  width: 14%;
+  translate: -50% 0;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.box:hover:not(:disabled) {
+  transform: translateY(-4px) rotate(-1.5deg);
+}
+
+.box-number {
+  position: relative;
+  font-size: clamp(30px, 5vw, 56px);
+  font-weight: 800;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.box-opened {
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 2px dashed var(--border);
+  box-shadow: none;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
+  text-align: left;
+}
+
+.box-opened::before {
+  display: none;
+}
+
+.box-check {
+  font-size: 12px;
+  font-weight: 700;
+  color: #06a77d;
+}
+
+.box-text {
+  font-size: 12px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.box-reveal {
+  animation: box-flip 0.5s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+@keyframes box-flip {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateY(80deg) scale(0.85);
+  }
+}
+
+.reveal-person {
+  margin: -8px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.joker-text {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.joker-prompt {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ---------- İki Doğru Bir Yalan ---------- */
+
+.tt-stage {
+  width: min(100%, 820px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.tt-kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.tt-title {
+  margin: 0;
+  font-size: clamp(26px, 4vw, 40px);
+  letter-spacing: -0.02em;
+}
+
+.tt-instruction {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  max-width: 560px;
+}
+
+.tt-stage .timer {
+  width: min(100%, 460px);
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  counter-reset: step;
+}
+
+.steps li {
+  counter-increment: step;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.steps li::before {
+  content: counter(step) '. ';
+}
+
+.steps li.done {
+  color: var(--text);
+}
+
+.steps li.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.tt-cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tt-card {
+  position: relative;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 14px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.tt-card-pick {
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    border-color 0.15s;
+}
+
+.tt-card-pick:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.tt-num {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.tt-note {
+  font-size: 15px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.tt-card .input {
+  text-align: center;
+}
+
+.tt-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.tt-verdict {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 15px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: #fff;
+  animation: pop-in 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.tt-lie {
+  background: var(--danger);
+}
+
+.tt-truth {
+  background: #06a77d;
+}
+
+.tt-card.is-lie {
+  border-color: var(--danger);
+  animation: box-flip 0.5s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+.tt-card.is-truth {
+  border-color: #06a77d;
+  opacity: 0.85;
+}
+
+.tt-banner {
+  margin: 0;
+  padding: 12px 22px;
+  border-radius: 14px;
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 800;
+  animation: pop-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.tt-banner-win {
+  background: color-mix(in srgb, #06a77d 15%, transparent);
+  color: #06a77d;
+}
+
+.tt-banner-lose {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+
+.scoreboard {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.scoreboard .vs {
+  color: var(--muted);
+}
+
+.scoreboard-big {
+  font-size: 24px;
+  padding: 10px 22px;
+}
+
 /* ---------- Sunum modu ---------- */
 
 .presenting .layout {
@@ -965,6 +1499,35 @@ kbd {
   .stage-hint {
     display: none;
   }
+
+  .brand p,
+  .crumb-title {
+    display: none;
+  }
+
+  .game-setup {
+    padding: 20px;
+  }
+
+  .box-grid {
+    gap: 10px;
+  }
+
+  .tt-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tt-card {
+    min-height: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .steps li {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -973,7 +1536,19 @@ kbd {
   }
 
   .modal,
-  .modal-backdrop {
+  .modal-backdrop,
+  .box-reveal,
+  .tt-card.is-lie,
+  .tt-verdict,
+  .tt-banner {
     animation: none;
+  }
+
+  .box:hover:not(:disabled),
+  .game-card:hover,
+  .tt-card-pick:hover,
+  .brand-home:hover {
+    transform: none;
+    rotate: none;
   }
 }

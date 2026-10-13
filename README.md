@@ -1,11 +1,26 @@
 # Buzkıran 🎡
 
-Şirket içi toplantılar, sprint retrospektifleri ve takım tanışmaları için **icebreaker çarkı**.
-Wordwall'daki "Retro Çarkı" fikrinden yola çıkıldı; üstüne kişi çarkı, cevap süresi, geçmiş ve
-düzenlenebilir soru desteleri eklendi.
+Şirket içi toplantılar, sprint retrospektifleri ve takım tanışmaları için **kısa buz kırıcı oyunlar**.
+Wordwall'daki "Retro Çarkı" fikrinden yola çıkıldı; üstüne kişi çarkı, cevap süresi, geçmiş,
+düzenlenebilir soru desteleri ve iki oyun daha eklendi.
 
 Sunucu ya da veritabanı gerektirmez: build çıktısı statik dosyalardır, intranet'te herhangi bir
 web sunucusundan (IIS, nginx, SharePoint/Confluence ek dosyası, GitHub Pages vb.) yayınlanabilir.
+
+## Oyunlar
+
+Uygulama bir oyun menüsüyle açılır; sorular ve katılımcı listesi tüm oyunlarda ortaktır.
+Hepsi tek ekrandan (ekran paylaşımıyla) oynanır, katılımcıların cihaz kullanması gerekmez.
+
+| Oyun | Süre | Nasıl oynanır |
+| --- | --- | --- |
+| 🎡 **Çarkıfelek** | 2–10 dk | Çark rastgele bir soru ya da söz sırası seçer. |
+| 🎁 **Gizemli Kutular** | 5–10 dk | Sırası gelen kişi bir kutu numarası seçer; kutudan soru ya da joker çıkar (🎯 *Devret*: soruyu o sorar, 👥 *Herkes*: herkes tek kelimeyle cevaplar). |
+| 🤥 **İki Doğru Bir Yalan** | 10–15 dk | Anlatıcı kendisiyle ilgili üç şey söyler; ekip el kaldırarak yalanı tahmin eder. Düşün → Anlat → Tahmin → Açıkla adımları, süre sayaçları ve ekip skoru. |
+
+Kutular ve İki Doğru Bir Yalan **tur modunda** çalışır: herkes bir kez konuşana kadar kimse tekrar
+seçilmez, pas geçen kişi turun sonunda ikinci bir şans alır. Skor yalnızca takım düzeyindedir
+(Ekip – Anlatıcılar); kişisel puan tablosu bilinçli olarak yoktur.
 
 ## Özellikler
 
@@ -41,11 +56,20 @@ npm run dev        # http://localhost:5173
 
 ```
 src/
-  App.tsx                 Uygulama durumu, yerleşim, klavye kısayolları
-  types.ts                Ortak tipler (Deck, Participant, Settings…)
+  App.tsx                 Ortak veri, oyun seçimi, yerleşim
+  types.ts                Ortak tipler (Deck, Participant, Settings, GameId…)
+  games/
+    catalog.ts            Oyun listesi (menü kartları)
+    WheelGame.tsx         Çarkıfelek
+    BoxesGame.tsx         Gizemli Kutular
+    boxes.ts              Kutu tahtası kurulumu + testleri
+    TwoTruthsGame.tsx     İki Doğru Bir Yalan
   components/
+    GameMenu.tsx          Oyun seçme ekranı
     Wheel.tsx             SVG çark + dönme animasyonu
-    ResultModal.tsx       Sonuç penceresi, sayaç, konfeti
+    ResultModal.tsx       Çark sonuç penceresi
+    Countdown.tsx         Geri sayım (tüm oyunlarda)
+    Confetti.tsx
     DecksPanel.tsx        Soru desteleri ve düzenleyici
     ParticipantsPanel.tsx Katılımcı listesi
     HistoryPanel.tsx      Geçmiş
@@ -53,11 +77,20 @@ src/
   data/defaultDecks.ts    Varsayılan soru desteleri
   lib/
     wheelMath.ts          Çark geometrisi (açı → dilim, hedef açı) + testleri
+    turns.ts              Tur modu: herkes bir kez, pas geçen sona + testleri
     backup.ts             JSON içe/dışa aktarma + testleri
     sound.ts              WebAudio ses efektleri
-    random.ts             crypto tabanlı rastgelelik
-  hooks/useLocalStorage.ts
+    random.ts             crypto tabanlı rastgelelik, karıştırma
+  hooks/
+    useLocalStorage.ts
+    useTurns.ts           Katılımcı listesi üzerinde tur modu
 ```
+
+### Yeni oyun eklemek
+
+1. `src/games/` altına oyun bileşenini yazın (ortak `Countdown`, `Confetti`, `useTurns` hazır).
+2. `src/types.ts` içindeki `GameId` tipine ve `src/games/catalog.ts` listesine ekleyin.
+3. `App.tsx` içinde `game === '…'` dalını ekleyin; menü kartı otomatik görünür.
 
 ### Çark nasıl seçim yapıyor?
 
